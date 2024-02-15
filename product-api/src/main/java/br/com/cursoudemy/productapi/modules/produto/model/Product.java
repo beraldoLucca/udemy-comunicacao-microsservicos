@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 public class Product {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "NAME", nullable = false)
@@ -56,5 +56,9 @@ public class Product {
                 .supplier(supplier)
                 .category(category)
                 .build();
+    }
+
+    public void updateStock(Integer quantity){
+        quantityAvailable = quantityAvailable - quantity;
     }
 }

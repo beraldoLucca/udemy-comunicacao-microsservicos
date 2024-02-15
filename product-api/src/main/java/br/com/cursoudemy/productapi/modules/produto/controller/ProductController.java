@@ -4,8 +4,11 @@ import br.com.cursoudemy.productapi.config.exception.SuccessResponse;
 import br.com.cursoudemy.productapi.modules.category.dto.request.CategoryRequest;
 import br.com.cursoudemy.productapi.modules.category.dto.response.CategoryResponse;
 import br.com.cursoudemy.productapi.modules.category.service.CategoryService;
+import br.com.cursoudemy.productapi.modules.produto.dto.rabbitmq.ProductStockDTO;
+import br.com.cursoudemy.productapi.modules.produto.dto.request.ProductCheckStock;
 import br.com.cursoudemy.productapi.modules.produto.dto.request.ProductRequest;
 import br.com.cursoudemy.productapi.modules.produto.dto.response.ProductResponse;
+import br.com.cursoudemy.productapi.modules.produto.dto.response.ProductSalesResponse;
 import br.com.cursoudemy.productapi.modules.produto.service.ProductService;
 import br.com.cursoudemy.productapi.modules.supplier.dto.response.SupplierResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,5 +61,15 @@ public class ProductController {
     @PutMapping("{id}")
     public ProductResponse update(@RequestBody ProductRequest request, @PathVariable Integer id){
         return productService.update(request, id);
+    }
+
+    @PostMapping("check-stock")
+    public SuccessResponse checkProductStock(@RequestBody ProductCheckStock productStock){
+        return productService.checkProductsStock(productStock);
+    }
+
+    @GetMapping("{id}/sales")
+    public ProductSalesResponse findByProductSales(@PathVariable Integer id){
+        return productService.findProductSalesById(id);
     }
 }
