@@ -12,10 +12,8 @@ import java.util.Optional;
 @HttpExchange("/api/orders")
 public interface SalesClient {
 
-//    @GetExchange("/product/{productId}")
-//    Optional<SalesProductResponse> findSalesByProductId(@PathVariable Integer productId,
-//                                                        @RequestHeader(name = "Authorization") String authorization,
-//                                                        @RequestHeader(name = "transactionId") String transactionId);
     @GetExchange("/product/{productId}")
-    Optional<SalesProductResponse> findSalesByProductId(@PathVariable Integer productId);
+    Optional<SalesProductResponse> findSalesByProductId(@PathVariable Integer productId,
+                                                        @RequestHeader(name = "Authorization") String authorization,
+                                                        @RequestHeader(name = "transactionId") String transactionId);
 }

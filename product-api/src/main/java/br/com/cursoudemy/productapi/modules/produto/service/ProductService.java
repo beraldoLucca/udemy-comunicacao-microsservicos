@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static br.com.cursoudemy.productapi.config.RequestUtil.getCurrentRequest;
 import static io.micrometer.common.util.StringUtils.isBlank;
 import static org.hibernate.type.descriptor.java.IntegerJavaType.ZERO;
 import static org.springframework.util.ObjectUtils.isEmpty;
@@ -32,6 +33,10 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @Slf4j
 @Service
 public class ProductService {
+
+    private static final Integer ZERO = 0;
+    private static final String TRANSACTION_ID = "transactionId";
+    private static final String AUTHORIZATION = "Authorization";
 
     @Autowired
     private IProductRepository iProductRepository;
@@ -217,10 +222,14 @@ public class ProductService {
     public ProductSalesResponse findProductSalesById(Integer id){
         var product = findById(id);
         try{
-            var sales = salesClient.findSalesByProductId(product.getId())
+            var currentRequest = getCurrentRequest();
+            var token = currentRequest.getHeader(AUTHORIZATION);
+            var transactionId = currentRequest.getHeader(TRANSACTION_ID);
+            var sales = salesClient.findSalesByProductId(product.getId(), token, transactionId)
                     .orElseThrow(() -> new ValidationException("The sales was not found by this product."));
             return ProductSalesResponse.of(product, sales.getSalesId());
         } catch (Exception ex){
+            ex.printStackTrace();
             throw new ValidationException("There was an error trying to get the product's sales.");
         }
     }
