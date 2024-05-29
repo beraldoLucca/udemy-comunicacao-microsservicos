@@ -7,7 +7,9 @@ import br.com.cursoudemy.productapi.modules.supplier.dto.request.SupplierRequest
 import br.com.cursoudemy.productapi.modules.supplier.dto.response.SupplierResponse;
 import br.com.cursoudemy.productapi.modules.supplier.model.Supplier;
 import br.com.cursoudemy.productapi.modules.supplier.repository.ISupplierRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,13 +18,13 @@ import java.util.stream.Collectors;
 import static io.micrometer.common.util.StringUtils.isBlank;
 
 @Service
+@AllArgsConstructor(onConstructor_ = {@Lazy})
 public class SupplierService {
 
-    @Autowired
-    private ISupplierRepository iSupplierRepository;
+    private final ISupplierRepository iSupplierRepository;
 
-    @Autowired
-    private ProductService productService;
+    @Lazy
+    private final ProductService productService;
 
     public Supplier findById(Integer id){
         validateInformedId(id);

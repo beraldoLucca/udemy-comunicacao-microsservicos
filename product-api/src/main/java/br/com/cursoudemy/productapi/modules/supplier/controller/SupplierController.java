@@ -6,6 +6,7 @@ import br.com.cursoudemy.productapi.modules.category.dto.response.CategoryRespon
 import br.com.cursoudemy.productapi.modules.supplier.dto.request.SupplierRequest;
 import br.com.cursoudemy.productapi.modules.supplier.dto.response.SupplierResponse;
 import br.com.cursoudemy.productapi.modules.supplier.service.SupplierService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +14,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/supplier")
+@AllArgsConstructor
 public class SupplierController {
 
-    @Autowired
-    private SupplierService supplierService;
+    private final SupplierService supplierService;
 
     @PostMapping("")
     public SupplierResponse save(@RequestBody SupplierRequest request){

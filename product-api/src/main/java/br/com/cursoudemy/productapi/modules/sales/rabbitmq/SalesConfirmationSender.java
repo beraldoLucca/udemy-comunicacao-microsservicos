@@ -14,8 +14,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SalesConfirmationSender {
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     private final ObjectMapper objectMapper;
 

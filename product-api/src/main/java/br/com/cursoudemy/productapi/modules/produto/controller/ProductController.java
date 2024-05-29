@@ -11,17 +11,18 @@ import br.com.cursoudemy.productapi.modules.produto.dto.response.ProductResponse
 import br.com.cursoudemy.productapi.modules.produto.dto.response.ProductSalesResponse;
 import br.com.cursoudemy.productapi.modules.produto.service.ProductService;
 import br.com.cursoudemy.productapi.modules.supplier.dto.response.SupplierResponse;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/product")
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
 
     @PostMapping("")
     public ProductResponse save(@RequestBody ProductRequest request){

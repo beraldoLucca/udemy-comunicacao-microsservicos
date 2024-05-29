@@ -14,16 +14,16 @@ public class HttpInterfaceConfig {
     @Value("${app-config.services.sales}")
     private String baseUrl;
 
-    @Bean
-    public SalesClient salesClient(){
-        return HttpServiceProxyFactory
-                .builder(
-                        WebClientAdapter
-                                .forClient(WebClient.builder()
-                                        .baseUrl(baseUrl)
-                                        .build())
-                )
-                .build()
-                .createClient(SalesClient.class);
-    }
+//    @Bean
+////    public SalesClient salesClient(){
+////        return HttpServiceProxyFactory
+////                .builder(
+////                        WebClientAdapter
+////                                .forClient(WebClient.builder()
+////                                        .baseUrl(baseUrl)
+////                                        .build())
+////                )
+////                .build()
+////                .createClient(SalesClient.class);
+////    }
 }

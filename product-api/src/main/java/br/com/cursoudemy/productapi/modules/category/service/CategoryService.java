@@ -7,7 +7,9 @@ import br.com.cursoudemy.productapi.modules.category.dto.response.CategoryRespon
 import br.com.cursoudemy.productapi.modules.category.model.Category;
 import br.com.cursoudemy.productapi.modules.category.repository.ICategoryRepository;
 import br.com.cursoudemy.productapi.modules.produto.service.ProductService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,12 +18,13 @@ import java.util.stream.Collectors;
 import static io.micrometer.common.util.StringUtils.isBlank;
 
 @Service
+@AllArgsConstructor(onConstructor_ = {@Lazy})
 public class CategoryService {
 
-    @Autowired
-    private ICategoryRepository iCategoryRepository;
-    @Autowired
-    private ProductService productService;
+    private final ICategoryRepository iCategoryRepository;
+
+    @Lazy
+    private final ProductService productService;
 
     public CategoryResponse findByIdResponse(Integer id){
         return CategoryResponse.of(findById(id));

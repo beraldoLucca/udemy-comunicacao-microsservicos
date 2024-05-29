@@ -16,7 +16,9 @@ import br.com.cursoudemy.productapi.modules.sales.dto.SalesConfirmationDTO;
 import br.com.cursoudemy.productapi.modules.sales.enums.SalesStatus;
 import br.com.cursoudemy.productapi.modules.sales.rabbitmq.SalesConfirmationSender;
 import br.com.cursoudemy.productapi.modules.supplier.service.SupplierService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,27 +29,28 @@ import java.util.stream.Collectors;
 
 import static br.com.cursoudemy.productapi.config.RequestUtil.getCurrentRequest;
 import static io.micrometer.common.util.StringUtils.isBlank;
-import static org.hibernate.type.descriptor.java.IntegerJavaType.ZERO;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class ProductService {
 
     private static final Integer ZERO = 0;
-    private static final String TRANSACTION_ID = "transactionId";
+    private static final String TRANSACTION_ID = "transactionid";
+    private static final String SERVICE_ID = "serviceid";
     private static final String AUTHORIZATION = "Authorization";
 
-    @Autowired
-    private IProductRepository iProductRepository;
-    @Autowired
-    private SupplierService supplierService;
-    @Autowired
-    private CategoryService categoryService;
-    @Autowired
-    private SalesConfirmationSender salesConfirmationSender;
-    @Autowired
-    private SalesClient salesClient;
+
+    private final IProductRepository iProductRepository;
+
+    private final SupplierService supplierService;
+
+    private final CategoryService categoryService;
+
+    private final SalesConfirmationSender salesConfirmationSender;
+
+    private final SalesClient salesClient;
 
     public Product findById(Integer id){
         validateInformedId(id);
@@ -142,7 +145,7 @@ public class ProductService {
         if(isBlank(request.getName())){
             throw new ValidationException("The product's name was not informed.");
         }
-        if(isBlank(String.valueOf(request.getQuantityAvailable()))){
+        if(isEmpty(request.getQuantityAvailable())){
             throw new ValidationException("The product's quantity available was not informed.");
         }
         if(request.getQuantityAvailable() <= ZERO){
@@ -166,7 +169,7 @@ public class ProductService {
         } catch (Exception ex){
             log.error("Error while trying to update stock for message with error: {}", ex.getMessage(), ex);
             var rejectedMessage = new SalesConfirmationDTO(productStockDTO.getSalesId(),
-                    SalesStatus.REJECTED);
+                    SalesStatus.REJECTED, productStockDTO.getTransactionid());
             salesConfirmationSender.sendSalesConfirmationMessage(rejectedMessage);
         }
     }
@@ -183,7 +186,8 @@ public class ProductService {
                 });
         if(!isEmpty(productsForUpdate)){
             iProductRepository.saveAll(productsForUpdate);
-            var approvedMessage = new SalesConfirmationDTO(productStockDTO.getSalesId(), SalesStatus.APPROVED);
+            var approvedMessage = new SalesConfirmationDTO(productStockDTO.getSalesId(), SalesStatus.APPROVED,
+                    productStockDTO.getTransactionid());
             salesConfirmationSender.sendSalesConfirmationMessage(approvedMessage);
         }
     }
@@ -225,8 +229,13 @@ public class ProductService {
             var currentRequest = getCurrentRequest();
             var token = currentRequest.getHeader(AUTHORIZATION);
             var transactionId = currentRequest.getHeader(TRANSACTION_ID);
+            var serviceid = currentRequest.getAttribute(SERVICE_ID);
+            log.info("Sending GET Request to orders by productId with data {} | [transactionID: ${} | serviceID: ${}",
+                    product, transactionId, serviceid);
             var sales = salesClient.findSalesByProductId(product.getId(), token, transactionId)
                     .orElseThrow(() -> new ValidationException("The sales was not found by this product."));
+            log.info("Receiving response from orders by productId with data {} | [transactionID: ${} | serviceID: ${}",
+                    new ObjectMapper().writeValueAsString(sales), transactionId, serviceid);
             return ProductSalesResponse.of(product, sales.getSalesId());
         } catch (Exception ex){
             ex.printStackTrace();
@@ -235,14 +244,28 @@ public class ProductService {
     }
 
     public SuccessResponse checkProductsStock(ProductCheckStock productCheckStock){
-        if(isEmpty(productCheckStock)){
-            throw new ValidationException("The request data and products must be informed.");
-        }
-        productCheckStock
-                .getProducts()
-                .forEach(this::validateStock);
+        try{
+            var currentRequest = getCurrentRequest();
+            var transactionid = currentRequest.getHeader(TRANSACTION_ID);
+            var serviceid = currentRequest.getAttribute(SERVICE_ID);
+            log.info("Request to POST product stock with data {} | [transactionID: ${} | serviceID: ${}",
+                    new ObjectMapper().writeValueAsString(productCheckStock),
+                    transactionid, serviceid);
+            if(isEmpty(productCheckStock)){
+                throw new ValidationException("The request data and products must be informed.");
+            }
+            productCheckStock
+                    .getProducts()
+                    .forEach(this::validateStock);
 
-        return SuccessResponse.create("The stock is ok!!");
+            var response = SuccessResponse.create("The stock is ok!!");
+            log.info("Response to POST product stock with data {} | [transactionID: ${} | serviceID: ${}",
+                    new ObjectMapper().writeValueAsString(response),
+                    transactionid, serviceid);
+            return response;
+        } catch (Exception ex){
+            throw new ValidationException(ex.getMessage());
+        }
     }
 
     private void validateStock(ProductQuantityDTO productQuantity){
